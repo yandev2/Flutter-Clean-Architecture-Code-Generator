@@ -38,7 +38,7 @@ void generatePresentation() {
             '''
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/${value.toPascalCase()}_controller.dart';
+import '../controller/${value.toSnakeCase()}_controller.dart';
 
 class ${value.toPascalCase()}Page extends StatelessWidget {
   const ${value.toPascalCase()}Page({super.key});
@@ -149,7 +149,7 @@ GetPage(name: RouteName.${value.toCamelCase()}, page: () => ${value.toPascalCase
     final content = routeNameFile.readAsStringSync();
     final routeName =
         '''
-  static const $value = '/$value';
+  static const ${value.toCamelCase()} = '/$value';
 ''';
     var updatedContent = content;
 
@@ -1593,10 +1593,10 @@ extension StringFormatter on String {
   String toSnakeCase() {
     if (isEmpty) return "";
 
-    return replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'), (Match m) => '${m[1]}_${m[2]}')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .replaceAll(RegExp(r'-+'), '_')
-        .toLowerCase();
+    return replaceAllMapped(
+      RegExp(r'([a-z0-9])([A-Z])'),
+      (Match m) => '${m[1]}_${m[2]}',
+    ).replaceAll(RegExp(r'\s+'), '_').replaceAll(RegExp(r'-+'), '_').toLowerCase();
   }
 
   /// Mengubah ke PascalCase dengan menstandarkan ke snake_case dulu
