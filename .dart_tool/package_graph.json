@@ -1,0 +1,28 @@
+{
+  "roots": [
+    "flutter_code_generator"
+  ],
+  "packages": [
+    {
+      "name": "flutter_code_generator",
+      "version": "1.0.0",
+      "dependencies": [
+        "cupertino_icons"
+      ],
+      "devDependencies": [
+        "lints"
+      ]
+    },
+    {
+      "name": "lints",
+      "version": "6.1.0",
+      "dependencies": []
+    },
+    {
+      "name": "cupertino_icons",
+      "version": "1.0.8",
+      "dependencies": []
+    }
+  ],
+  "configVersion": 1
+}
