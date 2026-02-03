@@ -101,7 +101,7 @@ class ${value.toPascalCase()}Binding implements Bindings {
 
     _updateRouteFile(value);
     _writeFile(fileStructure);
-    print('Presentation ${value} generation completed. like my repo https://github.com/yandev2');
+    print('Presentation $value generation completed. like my repo https://github.com/yandev2');
   }
 }
 
@@ -116,7 +116,7 @@ void _updateRouteFile(String value) {
 
     final import =
         '''
-import '../../presentation/${value}/page/${value}_page.dart';
+import '../../presentation/$value/page/${value}_page.dart';
 import 'binding/${value}_binding.dart';
 ''';
 
@@ -128,15 +128,15 @@ GetPage(name: RouteName.${value.toCamelCase()}, page: () => ${value.toPascalCase
 
     if (!updatedContent.contains(import)) {
       updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-IMPORT', '''
-// AUTO-GENERATED-IMPORT
     $import
+    // AUTO-GENERATED-IMPORT
    ''');
     }
 
     if (!updatedContent.contains(routeApp)) {
       updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-ROUTE', '''
-// AUTO-GENERATED-ROUTE
     $routeApp
+    // AUTO-GENERATED-ROUTE
    ''');
     }
 
@@ -149,14 +149,14 @@ GetPage(name: RouteName.${value.toCamelCase()}, page: () => ${value.toPascalCase
     final content = routeNameFile.readAsStringSync();
     final routeName =
         '''
-  static const ${value} = '/${value}';
+  static const $value = '/$value';
 ''';
     var updatedContent = content;
 
     if (!updatedContent.contains(routeName)) {
       updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-ROUTE', '''
-// AUTO-GENERATED-ROUTE
     $routeName
+    // AUTO-GENERATED-ROUTE
    ''');
     }
 
@@ -186,7 +186,7 @@ void generateUsecase() {
             'lib/domain/usecase/${repository.replaceAll('_repository', '')}/${usecase}_usecase.dart',
         'content':
             '''
-import '../../repository/${repository}.dart';
+import '../../repository/$repository.dart';
 
 class ${usecase.toPascalCase()}Usecase {
  final ${repository.toPascalCase()} ${repository.toCamelCase()};
@@ -194,7 +194,7 @@ class ${usecase.toPascalCase()}Usecase {
 
   Future<dynamic> call() async {
     final result = await ${repository.toCamelCase()}.${usecase.toCamelCase()}();
-    return  result.fold((e) => throw Exception(e), (d) => d);
+    return result.fold((e) => throw e, (d) => d);
   }
 }
  ''',
@@ -203,7 +203,7 @@ class ${usecase.toPascalCase()}Usecase {
 
     _updateDependencyUsecaseLayer(usecase, repository);
     _writeFile(fileStructure);
-    print('Usecase ${usecase} generation completed. like my repo https://github.com/yandev2');
+    print('Usecase $usecase generation completed. like my repo https://github.com/yandev2');
   }
 }
 
@@ -234,20 +234,22 @@ ${usecase.toCamelCase()}Usecase = ${usecase.toPascalCase()}Usecase(${repository.
 
   if (!updatedContent.contains(importLine)) {
     updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-IMPORT', '''
-// AUTO-GENERATED-IMPORT
-  $importLine''');
+  $importLine
+  // AUTO-GENERATED-IMPORT
+  ''');
   }
 
   if (!updatedContent.contains(usecaseLine)) {
     updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-USECASE', '''
-// AUTO-GENERATED-USECASE
-  $usecaseLine''');
+  $usecaseLine
+  // AUTO-GENERATED-USECASE
+  ''');
   }
 
   if (!updatedContent.contains(initUsecase)) {
     updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-INIT', '''
-// AUTO-GENERATED-INIT
     $initUsecase
+    // AUTO-GENERATED-INIT
    ''');
   }
 
@@ -425,7 +427,7 @@ abstract class ${value.toPascalCase()}Repository {
     _updateDependencyDomainLayer(value);
     _writeFile(fileStructure);
     print(
-      'Domain layer ${input} generation completed. run dart run build_runner build. like my repo https://github.com/yandev2',
+      'Domain layer $input generation completed. run dart run build_runner build. like my repo https://github.com/yandev2',
     );
   }
 }
@@ -461,20 +463,23 @@ import '../../domain/repository/${value}_repository.dart';
 
   if (!updatedContent.contains(importLine)) {
     updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-IMPORT', '''
-// AUTO-GENERATED-IMPORT
-  $importLine''');
+  $importLine
+  // AUTO-GENERATED-IMPORT
+  ''');
   }
 
   if (!updatedContent.contains(lateDatasourceLine)) {
     updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-LATE', '''
-// AUTO-GENERATED-LATE
-  $lateDatasourceLine''');
+  $lateDatasourceLine
+  // AUTO-GENERATED-LATE
+  ''');
   }
 
   if (!updatedContent.contains(initDatasourceLine)) {
     updatedContent = updatedContent.replaceFirst('// AUTO-GENERATED-INIT', '''
-// AUTO-GENERATED-INIT
-  $initDatasourceLine''');
+  $initDatasourceLine
+  // AUTO-GENERATED-INIT
+  ''');
   }
 
   file.writeAsStringSync(updatedContent);
@@ -623,7 +628,6 @@ class ApiClient {
       final response = await http
           .get(Uri.parse(url), headers: {..._defaultHeaders, ...?headers})
           .timeout(_timeout);
-
       return _handleResponse(response, converter);
     } catch (e) {
       throw _mapException(e);
@@ -648,8 +652,12 @@ class ApiClient {
   }
 
   T _handleResponse<T>(http.Response response, T Function(dynamic json) converter) {
-    if (response.statusCode != 200) {
-      throw ApiException(response.statusCode, 'Server error (${response.statusCode})');
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(response.statusCode, 'HTTP Error (${response.statusCode})');
+    }
+
+    if (response.body.isEmpty) {
+      return converter(null);
     }
 
     final dynamic decoded = json.decode(response.body);
@@ -1046,7 +1054,7 @@ final ThemeData darkTheme = ThemeData(
     ),
   ),
 
-  colorScheme: ColorScheme.dark(
+  colorScheme: ColorScheme.light(
     primary: AppColors.primary,
     secondary: AppColors.secondary,
     error: AppColors.danger,
@@ -1515,7 +1523,6 @@ import 'service/route/route_name.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
   runApp(const MyApp());
 }
 
@@ -1586,8 +1593,7 @@ extension StringFormatter on String {
   String toSnakeCase() {
     if (isEmpty) return "";
 
-    return this
-        .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'), (Match m) => '${m[1]}_${m[2]}')
+    return replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'), (Match m) => '${m[1]}_${m[2]}')
         .replaceAll(RegExp(r'\s+'), '_')
         .replaceAll(RegExp(r'-+'), '_')
         .toLowerCase();
