@@ -559,9 +559,526 @@ flutter:
 
     {'path': 'lib/presentation/'},
 
-    {'path': 'lib/core/widget/app_button.dart', 'content': ''' // here code '''},
-    {'path': 'lib/core/widget/app_snacbar.dart', 'content': ''' // here code '''},
-    {'path': 'lib/core/widget/app_dialog.dart', 'content': ''' // here code '''},
+    {
+      'path': 'lib/core/widget/app_button.dart',
+      'content': r'''
+import 'package:flutter/material.dart';
+import 'package:flutter_bounceable/flutter_bounceable.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import '../enum/app_style.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_size.dart';
+import '../theme/app_theme.dart';
+
+class AppButton extends StatelessWidget {
+  const AppButton({
+    super.key,
+    required this.action,
+    required this.type,
+    this.icon,
+    this.title,
+    this.isMax = false,
+    this.isPrimary = false,
+    this.sized = 12,
+  });
+
+  final VoidCallback action;
+  final AppStyle type;
+  final IconData? icon;
+  final String? title;
+  final bool? isMax;
+  final int? sized;
+  final bool? isPrimary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => Bounceable(
+        onTap: action,
+        child: Container(
+          padding: title != null
+              ? EdgeInsets.symmetric(horizontal: size(15), vertical: size(10))
+              : EdgeInsets.all(size(5)),
+          decoration: _decorationButton(context),
+          child: Row(
+            spacing: size(7),
+            mainAxisSize: isMax == false ? MainAxisSize.min : MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [if (icon != null) _iconButton(context), if (title != null) _textButton()],
+          ),
+        ),
+      ),
+    );
+  }
+
+  BoxDecoration _decorationButton(BuildContext context) {
+    return BoxDecoration(
+      color: isPrimary == true
+          ? Theme.of(context).cardColor
+          : switch (type) {
+              AppStyle.success => isDark.isTrue ? AppColors.success.darken() : AppColors.success,
+              AppStyle.warning => isDark.isTrue ? AppColors.warning.darken() : AppColors.warning,
+              AppStyle.danger => isDark.isTrue ? AppColors.danger.darken() : AppColors.danger,
+              AppStyle.primary => isDark.isTrue ? AppColors.primary.darken() : AppColors.primary,
+            },
+      borderRadius: BorderRadius.circular(12.r),
+      boxShadow: [
+        BoxShadow(
+          color: isDark.isTrue
+              ? const Color.fromARGB(31, 255, 255, 255)
+              : const Color.fromARGB(31, 0, 0, 0),
+          blurRadius: 2,
+        ),
+      ],
+    );
+  }
+
+  Text _textButton() {
+    return Text(
+      '$title',
+      textScaler: TextScaler.linear(scale()),
+      style: TextStyle(
+        color: isPrimary == true
+            ? isDark.isTrue
+                  ? AppColors.darkText
+                  : AppColors.lightText
+            : AppColors.white,
+        fontSize: size(sized!),
+      ),
+    );
+  }
+
+  Container _iconButton(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(size(2)),
+      decoration: BoxDecoration(
+        color: isPrimary == true
+            ? isDark.isTrue
+                  ? AppColors.darkText
+                  : AppColors.lightText
+            : switch (type) {
+                AppStyle.success =>
+                  isDark.isTrue ? AppColors.success.lighten(0.3) : AppColors.success.lighten(0.5),
+                AppStyle.warning =>
+                  isDark.isTrue ? AppColors.warning.lighten(0.3) : AppColors.warning.lighten(0.5),
+                AppStyle.danger =>
+                  isDark.isTrue ? AppColors.danger.lighten(0.3) : AppColors.danger.lighten(0.5),
+                AppStyle.primary =>
+                  isDark.isTrue ? AppColors.primary.lighten(0.3) : AppColors.primary.lighten(0.5),
+              },
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Icon(
+        Icons.add,
+        color: isPrimary == true
+            ? Theme.of(context).cardColor
+            : switch (type) {
+                AppStyle.success => isDark.isTrue ? AppColors.success.darken() : AppColors.success,
+                AppStyle.warning => isDark.isTrue ? AppColors.warning.darken() : AppColors.warning,
+                AppStyle.danger => isDark.isTrue ? AppColors.danger.darken() : AppColors.danger,
+                AppStyle.primary => isDark.isTrue ? AppColors.primary.darken() : AppColors.primary,
+              },
+        size: size(sized! + 3),
+      ),
+    );
+  }
+}
+''',
+    },
+    {
+      'path': 'lib/core/widget/app_snacbar.dart',
+      'content': ''' 
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../enum/app_style.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_size.dart';
+
+class AppDialogPalette {
+  static const lightBg = Colors.white;
+  static const darkBg = Color(0xFF111827);
+
+  // ignore: deprecated_member_use
+  static Color iconBg(Color color) => color.withOpacity(0.15);
+}
+
+class AppSnacbarStyle {
+  final Color bg;
+  final Color bgAccent;
+  final Color accent;
+  final Color iconBg;
+  final Color titleColor;
+  final IconData icon;
+
+  const AppSnacbarStyle({
+    required this.bg,
+    required this.bgAccent,
+    required this.accent,
+    required this.iconBg,
+    required this.titleColor,
+    required this.icon,
+  });
+
+  static AppSnacbarStyle of(AppStyle type, bool dark) {
+    final bg = dark ? AppDialogPalette.darkBg : AppDialogPalette.lightBg;
+    final titleColor = dark ? Colors.white : Colors.black;
+    switch (type) {
+      case AppStyle.success:
+        return AppSnacbarStyle(
+          bg: bg,
+          accent: AppColors.success,
+          bgAccent: dark
+              ? const Color.fromARGB(255, 32, 46, 33)
+              : const Color.fromARGB(255, 220, 255, 222),
+          iconBg: AppDialogPalette.iconBg(AppColors.success),
+          titleColor: titleColor,
+          icon: Icons.check_circle,
+        );
+
+      case AppStyle.danger:
+        return AppSnacbarStyle(
+          bg: bg,
+          accent: AppColors.danger,
+          bgAccent: dark
+              ? const Color.fromARGB(255, 46, 32, 32)
+              : const Color.fromARGB(255, 255, 220, 220),
+          iconBg: AppDialogPalette.iconBg(AppColors.danger),
+          titleColor: titleColor,
+          icon: Icons.error,
+        );
+
+      case AppStyle.warning:
+        return AppSnacbarStyle(
+          bg: bg,
+          accent: AppColors.warning,
+          bgAccent: dark
+              ? const Color.fromARGB(255, 46, 41, 32)
+              : const Color.fromARGB(255, 255, 243, 220),
+          iconBg: AppDialogPalette.iconBg(AppColors.warning),
+          titleColor: titleColor,
+          icon: Icons.warning_amber_rounded,
+        );
+
+      case AppStyle.primary:
+        return AppSnacbarStyle(
+          bg: bg,
+          accent: AppColors.primary,
+          bgAccent: dark
+              ? const Color.fromARGB(255, 32, 37, 46)
+              : const Color.fromARGB(255, 220, 226, 255),
+          iconBg: AppDialogPalette.iconBg(AppColors.primary),
+          titleColor: titleColor,
+          icon: Icons.info,
+        );
+    }
+  }
+}
+
+void showAppSnacbar({
+  required String title,
+  required String message,
+  required AppStyle type,
+  VoidCallback? onClose,
+  Duration duration = const Duration(seconds: 4),
+}) {
+  final dark = Get.isDarkMode;
+  final style = AppSnacbarStyle.of(type, dark);
+
+  Get.snackbar(
+    '',
+    '',
+    snackPosition: SnackPosition.TOP,
+    backgroundColor: Colors.transparent,
+    margin: EdgeInsets.symmetric(horizontal: size(8), vertical: 0),
+    duration: duration,
+    overlayBlur: 2,
+    animationDuration: const Duration(milliseconds: 350),
+    isDismissible: true,
+    messageText: Container(
+      padding: EdgeInsets.symmetric(vertical: size(5)),
+      decoration: BoxDecoration(
+        border: Border.all(color: dark ? AppColors.darkBg : AppColors.lightBg),
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: AlignmentGeometry.topCenter,
+          end: AlignmentGeometry.bottomCenter,
+          colors: [style.bgAccent, style.bg],
+        ),
+        boxShadow: [
+          BoxShadow(
+            // ignore: deprecated_member_use
+            color: dark ? Color.fromARGB(5, 255, 255, 255) : const Color.fromARGB(17, 0, 0, 0),
+            blurRadius: 25,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: Container(
+          width: size(36),
+          height: size(36),
+          decoration: BoxDecoration(color: style.iconBg, shape: BoxShape.circle),
+          child: Icon(style.icon, color: style.accent, size: size(20)),
+        ),
+
+        title: Padding(
+          padding: EdgeInsets.only(bottom: size(5)),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  textScaler: TextScaler.linear(scale()),
+                  style: TextStyle(
+                    fontSize: size(14),
+                    fontWeight: FontWeight.w600,
+                    color: style.titleColor,
+                  ),
+                ),
+              ),
+              if (onClose != null)
+                InkWell(
+                  onTap: () {
+                    Get.back();
+                    onClose.call();
+                  },
+                  child: Icon(Icons.close, size: 18, color: style.titleColor.withOpacity(0.6)),
+                ),
+            ],
+          ),
+        ),
+
+        subtitle: Text(
+          message,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textScaler: TextScaler.linear(scale()),
+          style: TextStyle(
+            fontSize: size(10),
+            height: 1.5,
+            color: dark ? Colors.white70 : Colors.black87,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+     ''',
+    },
+    {
+      'path': 'lib/core/widget/app_dialog.dart',
+      'content': ''' 
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../enum/app_style.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_size.dart';
+
+class AppDialogPalette {
+  static const lightBg = Colors.white;
+  static const darkBg = Color(0xFF111827);
+
+  // ignore: deprecated_member_use
+  static Color iconBg(Color color) => color.withOpacity(0.15);
+}
+
+class AppDialogStyle {
+  final Color bg;
+  final Color accent;
+  final Color iconBg;
+  final Color titleColor;
+  final IconData icon;
+
+  const AppDialogStyle({
+    required this.bg,
+    required this.accent,
+    required this.iconBg,
+    required this.titleColor,
+    required this.icon,
+  });
+
+  static AppDialogStyle of(AppStyle type, bool dark) {
+    final bg = dark ? AppDialogPalette.darkBg : AppDialogPalette.lightBg;
+    final titleColor = dark ? Colors.white : Colors.black;
+
+    switch (type) {
+      case AppStyle.success:
+        return AppDialogStyle(
+          bg: bg,
+          accent: AppColors.success,
+          iconBg: AppDialogPalette.iconBg(AppColors.success),
+          titleColor: titleColor,
+          icon: Icons.check_circle,
+        );
+
+      case AppStyle.danger:
+        return AppDialogStyle(
+          bg: bg,
+          accent: AppColors.danger,
+          iconBg: AppDialogPalette.iconBg(AppColors.danger),
+          titleColor: titleColor,
+          icon: Icons.error,
+        );
+
+      case AppStyle.warning:
+        return AppDialogStyle(
+          bg: bg,
+          accent: AppColors.warning,
+          iconBg: AppDialogPalette.iconBg(AppColors.warning),
+          titleColor: titleColor,
+          icon: Icons.warning_amber_rounded,
+        );
+
+      case AppStyle.primary:
+        return AppDialogStyle(
+          bg: bg,
+          accent: AppColors.primary,
+          iconBg: AppDialogPalette.iconBg(AppColors.primary),
+          titleColor: titleColor,
+          icon: Icons.info,
+        );
+    }
+  }
+}
+
+void showAppDialog({
+  required String title,
+  required String message,
+  required AppStyle type,
+  String leftText = 'Back',
+  String rightText = 'Okay',
+  VoidCallback? onLeft,
+  VoidCallback? onRight,
+}) {
+  final dark = Get.isDarkMode;
+  final style = AppDialogStyle.of(type, dark);
+
+  Get.dialog(
+    Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: Get.width * 0.85,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: style.bg,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                // ignore: deprecated_member_use
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 25,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Header
+              _buildHeaderDialog(style, title),
+              SizedBox(height: size(15)),
+
+              /// Message
+              _buildMessageDialog(message, dark),
+              SizedBox(height: size(20)),
+
+              /// Actions
+              _buildActionDialog(onLeft, leftText, style, onRight, rightText),
+            ],
+          ),
+        ),
+      ),
+    ),
+    barrierDismissible: false,
+  );
+}
+
+Row _buildActionDialog(
+  VoidCallback? onLeft,
+  String leftText,
+  AppDialogStyle style,
+  VoidCallback? onRight,
+  String rightText,
+) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      TextButton(
+        onPressed: () {
+          Get.back();
+          onLeft?.call();
+        },
+        child: Text(
+          leftText,
+          style: TextStyle(color: style.accent, fontSize: size(10)),
+          textScaler: TextScaler.linear(scale()),
+        ),
+      ),
+      SizedBox(width: size(12)),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: style.accent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        onPressed: () {
+          Get.back();
+          onRight?.call();
+        },
+        child: Text(
+          rightText,
+          textScaler: TextScaler.linear(scale()),
+          style: TextStyle(fontSize: size(10)),
+        ),
+      ),
+    ],
+  );
+}
+
+Text _buildMessageDialog(String message, bool dark) {
+  return Text(
+    message,
+    textScaler: TextScaler.linear(scale()),
+    style: TextStyle(
+      fontSize: size(10),
+      height: 1.5,
+      color: dark ? Colors.white70 : Colors.black87,
+    ),
+  );
+}
+
+Row _buildHeaderDialog(AppDialogStyle style, String title) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Container(
+        width: size(36),
+        height: size(36),
+        decoration: BoxDecoration(color: style.iconBg, shape: BoxShape.circle),
+        child: Icon(style.icon, color: style.accent, size: size(20)),
+      ),
+      SizedBox(width: size(12)),
+      Expanded(
+        child: Text(
+          title,
+          textScaler: TextScaler.linear(scale()),
+          style: TextStyle(
+            fontSize: size(16),
+            fontWeight: FontWeight.w600,
+            color: style.titleColor,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+    ''',
+    },
     {'path': 'lib/core/widget/app_image.dart', 'content': ''' // here code '''},
     {'path': 'lib/core/widget/app_error.dart', 'content': ''' // here code '''},
     {'path': 'lib/core/widget/app_loading.dart', 'content': ''' // here code '''},
@@ -569,6 +1086,12 @@ flutter:
     {'path': 'lib/core/utils/img.dart', 'content': ''' // here code '''},
     {'path': 'lib/core/utils/icon.dart', 'content': ''' // here code '''},
     {'path': 'lib/core/utils/lottie.dart', 'content': ''' // here code '''},
+
+    {
+      'path': 'lib/core/enum/app_style.dart',
+      'content': ''' enum AppStyle { primary, warning, success, danger }
+ ''',
+    },
 
     {
       'path': 'lib/core/network/api_client.dart',
@@ -962,25 +1485,39 @@ class AppColors {
   AppColors._();
 
   // Brand
-  static const primary = Color(0xFF4F46E5);
-  static const secondary = Color(0xFF6366F1);
-
+  static const primary = Color.fromARGB(255, 20, 100, 250);
   // Status
-  static const success = Color(0xFF16A34A);
+  static const success = Color.fromARGB(255, 18, 204, 86);
   static const warning = Color(0xFFF59E0B);
   static const danger = Color(0xFFDC2626);
   static const info = Color(0xFF0EA5E9);
+  static const white = Colors.white;
+  static const black = Colors.black;
 
   // Light
   static const lightBg = Color(0xFFF9FAFB);
   static const lightText = Color(0xFF111827);
   static const lightSubText = Color(0xFF6B7280);
+  static const lightShadow = Color.fromARGB(104, 83, 83, 83);
 
   // Dark
   static const darkBg = Color(0xFF111827);
   static const darkText = Color(0xFFF9FAFB);
   static const darkSubText = Color(0xFF9CA3AF);
-}   
+  static const darkShadow = Color.fromARGB(104, 83, 83, 83);
+}
+
+extension ColorX on Color {
+  Color lighten([double amount = .1]) {
+    final hsl = HSLColor.fromColor(this);
+    return hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0)).toColor();
+  }
+
+  Color darken([double amount = .1]) {
+    final hsl = HSLColor.fromColor(this);
+    return hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0)).toColor();
+  }
+}
       ''',
     },
     {
@@ -991,12 +1528,13 @@ import 'app_colors.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
-final themeMode = ThemeMode.light.obs;
+final isDark = false.obs;
 
 final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   scaffoldBackgroundColor: AppColors.darkBg,
   primaryColor: AppColors.primary,
+  cardColor: AppColors.black,
 
   appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.darkBg,
@@ -1054,17 +1592,14 @@ final ThemeData darkTheme = ThemeData(
     ),
   ),
 
-  colorScheme: ColorScheme.light(
-    primary: AppColors.primary,
-    secondary: AppColors.secondary,
-    error: AppColors.danger,
-  ),
+  colorScheme: ColorScheme.dark(primary: AppColors.primary, error: AppColors.danger),
 );
 
 final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
   scaffoldBackgroundColor: AppColors.lightBg,
   primaryColor: AppColors.primary,
+  cardColor: AppColors.white,
 
   appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.primary,
@@ -1122,13 +1657,8 @@ final ThemeData lightTheme = ThemeData(
     ),
   ),
 
-  colorScheme: ColorScheme.dark(
-    primary: AppColors.primary,
-    secondary: AppColors.secondary,
-    error: AppColors.danger,
-  ),
+  colorScheme: ColorScheme.light(primary: AppColors.primary, error: AppColors.danger),
 );
-
         ''',
     },
 
@@ -1544,7 +2074,7 @@ class MyApp extends StatelessWidget {
             getPages: RouteApp.route,
             theme: lightTheme,
             darkTheme: darkTheme,
-            themeMode: themeMode.value,
+            themeMode: isDark.isTrue ? ThemeMode.dark : ThemeMode.light,
             home: child,
           ),
         );
